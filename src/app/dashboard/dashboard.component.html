@@ -1,0 +1,106 @@
+<div>
+  <label>
+    <input type="checkbox" (change)="onCheckboxChange($event)" />
+    Include historic data
+  </label>
+  <p style="font-size: small;">if not  selected, the system will load only the current day data </p>
+  <p style="font-size: small;">if selected, the system will load all the available data, select this if you want to include data from dates before today.</p>
+</div>
+
+<div class="row">
+  <div class="col" > 
+    <p>Select device from the list:</p>
+    <select (change)="onDeviceSelect($event)">
+      <option *ngFor="let device of devices" [value]="device.name">{{device.name}} ({{device.id}})</option>
+    </select>
+  </div> 
+
+  <div class="container">
+    <div class="content">
+        <p> Select device using map:</p>
+        <google-map height="300px" width="500px" [options]="MapOptions"> 
+          <ng-container *ngFor="let device of devices">
+            <map-marker
+              title= {{device.name}}
+              [position]="{ lat: device.latitude, lng: device.longitude }" 
+              [icon]="device.icon"
+              (mapClick)="updateCurrentDevice(device)">>
+            </map-marker>
+          </ng-container>
+        </google-map>
+        <p>CurrentDevice: {{currentDevice.name}}</p>
+    </div>
+  </div>
+</div>
+
+<p></p>
+
+<div >
+  <mat-form-field appearance="fill">
+    <mat-label>Start Date and Hour *</mat-label>
+    <input matInput placeholder="yyyy-MM-ddTHH:mm:ss" [(ngModel)]="startDate">
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>End Date and Hour *</mat-label>
+    <input matInput placeholder="yyyy-MM-ddTHH:mm:ss" [(ngModel)]="endDate">
+  </mat-form-field>
+
+  <button mat-raised-button color="primary" (click)="filter()">Filter</button>
+</div>
+<p style="font-size: small;">Please use the format that appears when clicking the text box. The following are examples of allowed formats:</p>
+<p style="font-size: small;">"2024-06-21" for only date. Or "2024-06-21T17:30:00Z" for date and time (Don´t forget the "Z" at the end).</p>
+
+<ng-container *ngFor="let actualMeasurement of currentDevice.allMeasurements"> 
+  <div class="row justify-content-between">
+  
+    <div class="col">
+      <mat-card>
+        <mat-card-title >Current {{actualMeasurement["measurementsName"]}}</mat-card-title>
+        <ngx-charts-gauge
+        [view]="[300, 300]"
+        [units]= '"Units"'
+        [angleSpan]="240"
+        [startAngle]="-120"
+        [showAxis]="true"
+        [results]='[{"name": actualMeasurement["measurementsName"], "value":actualMeasurement["measurementsValues"][actualMeasurement["measurementsValues"].length -1 ].value}]'>
+        </ngx-charts-gauge>
+      </mat-card>
+    </div>
+
+    <div class="col">
+      <mat-card>
+        <mat-card-title> Historic {{actualMeasurement["measurementsName"]}} Measurements</mat-card-title>
+        <mat-card-content>
+          <ngx-charts-line-chart
+            [view]="[800, 300]"
+            [results]='[{
+                          "name": actualMeasurement["measurementsName"],
+                          "series":actualMeasurement["measurementsValues"]}]'
+            [gradient]="true"
+            [xAxis]="true"
+            [yAxis]="true"
+            [legend]="true"
+            [showXAxisLabel]="true"
+            [showYAxisLabel]="true"
+            [xAxisLabel]='"Date and Hour"'
+            [yAxisLabel]='actualMeasurement["measurementsName"] '
+          >
+          </ngx-charts-line-chart>
+        </mat-card-content>
+      </mat-card>
+      <p> Average: {{calculateAverage(actualMeasurement["measurementsValues"])}}</p>
+    </div>
+
+  </div>
+</ng-container>
+
+<div class="row justify-content-center">
+
+  <div>
+    
+  </div>
+
+</div>
+
+
